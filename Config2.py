@@ -8,7 +8,7 @@ import re
 '''
 
 class ConfigWriter(object):
-    def __init__(self,ControlPort,IpDst,IpSrc:list,IpBrodCast):
+    def __init__(self,ControlPort,IpDst,IpBanList:list,IpBrodCast):
     #basic
         self.Control = 'CONTROL :: ControlSocket(tcp,'+str(ControlPort)+')\n'
         self.Out_default   = 'out :: Queue(1024) -> ToDevice(ens33)\n'
@@ -24,13 +24,19 @@ class ConfigWriter(object):
         self.echo_attack ='dst udp port 7 or 19,'
         self.smuf_attack ='dst '+IpBrodCast+' and icmp,'
         self.land_attack = 'dst '+IpDst+' and src '+IpDst+','
+        if len(IpBanList)
+           for i in IpBanList
+               self.IpBaned +='src '+i+','
+           else
+               self.IpBaned =''
+
 
     def ChangePort(self,newPort):
         self.Control = 'CONTROL :: ControlSocket(tcp,'+newPort+')\n'
 
     def strategy_init(self,Strategy):
         self.Strategy_build=''
-        self.length =len(Strategy)
+        self.length =len(Strategy)+len(IpBanList)
         for i in Strategy:
             if i == 'rst_attack':
                 self.Strategy_build+= self.rst_attack
@@ -44,7 +50,9 @@ class ConfigWriter(object):
                 self.red_flag = 1
                 self.length--
             else:
-                print('ERROR')
+                print('STRATEGY ERROR')
+
+        Strategy_build += self.IpBaned
 
         #IpClassfier
         self.Ip_Classfier = 'ic :: IPClassifier( '+self.Strategy_build+ '-)'
@@ -63,17 +71,28 @@ class ConfigWriter(object):
 
         self.port = port
 
-    def NewConfig(self,Strategy):
+    def NewConfig(self,Strategy,id):
         self.strategy_init(Strategy)
         config =self.basic+self.Ip_Classfier+self.port
         try:
-            file = open('config/test.click', 'w')
+            file = open('config/test_'+id+'.click', 'w')
             file.write(config)
         except IOError:
             print('FILE WRITE ERROR')
         else:
             print('FILE WRITE SUCCESS')
         file.close()
+
+    def ConfigDefine(self,conf,id):
+        try:
+            file = open('config/test'+id+'.click','w')
+            file.write(conf)
+        except IOError:
+            print('FILE WRITE ERROR')
+        else:
+            print('FILE WRITE SUCCESS')
+        file.close()
+
 
 if __name__ == '__main__':
     witer = ConfigWriter(22222,'192.168.3.133',[],'192.168.3.255')
